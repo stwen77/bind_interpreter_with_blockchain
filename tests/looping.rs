@@ -4,10 +4,11 @@ use rhai::Engine;
 
 #[test]
 fn test_loop() {
-	let mut engine = Engine::new();
+    let mut engine = Engine::new();
 
-	assert!(
-		engine.eval::<bool>("
+    assert!(engine
+        .eval::<bool>(
+            "
 			let x = 0;
 			let i = 0;
 
@@ -22,6 +23,7 @@ fn test_loop() {
 			}
 
 			x == 45
-		").unwrap()
-	)
+		"
+        )
+        .unwrap())
 }

@@ -32,5 +32,4 @@ fn test_method_call() {
     } else {
         assert!(false);
     }
-
 }

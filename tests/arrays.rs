@@ -59,8 +59,10 @@ fn test_array_with_structs() {
         assert!(false);
     }
 
-    if let Ok(result) = engine.eval::<i64>("let a = [new_ts()]; a[0].x = 100; a[0].update(); \
-                                            a[0].x") {
+    if let Ok(result) = engine.eval::<i64>(
+        "let a = [new_ts()]; a[0].x = 100; a[0].update(); \
+         a[0].x",
+    ) {
         assert_eq!(result, 1100);
     } else {
         assert!(false);

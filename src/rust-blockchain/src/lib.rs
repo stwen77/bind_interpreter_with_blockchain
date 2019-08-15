@@ -77,7 +77,7 @@ fn handle_incoming_connections(chain: Arc<Mutex<Vec<Block>>>) {
     }
 }
 
-fn void_main() {
+fn void_main_of_blockchain() {
     clear_screen();
 
     println!("Type 'help' to list commands.");
@@ -88,82 +88,85 @@ fn void_main() {
     let listener_chain = chain.clone();
     spawn(|| handle_incoming_connections(listener_chain));
 
-    loop {
-        let input = get_input();
-        let splitted: Vec<&str> = input.split(' ').collect();
+    let main_loop = move|| {
+        loop{
+            let input = get_input();
+            let splitted: Vec<&str> = input.split(' ').collect();
 
-        /* get() returns &&str, so we mention result type &str
-        and get it from a reference (*) */
-        let command: &str = match splitted.get(0) {
-            Some(value) => *value,
-            None => {
-                continue;
-            }
-        };
-
-        const ADD_BLOCK: &str = "add_block";
-        const SEE_BLOCKCHAIN: &str = "list_blocks";
-        const ADD_PEER: &str = "add_peer";
-        const LIST_PEERS: &str = "list_peers";
-        const EXIT: &str = "exit";
-        const HELP: &str = "help";
-
-        let option = match splitted.get(1) {
-            Some(option) => option,
-            None => {
-                if command == ADD_BLOCK || command == ADD_PEER {
+            /* get() returns &&str, so we mention result type &str
+            and get it from a reference (*) */
+            let command: &str = match splitted.get(0) {
+                Some(value) => *value,
+                None => {
                     continue;
                 }
+            };
 
-                ""
-            }
-        };
+            const ADD_BLOCK: &str = "add_block";
+            const SEE_BLOCKCHAIN: &str = "list_blocks";
+            const ADD_PEER: &str = "add_peer";
+            const LIST_PEERS: &str = "list_peers";
+            const EXIT: &str = "exit";
+            const HELP: &str = "help";
 
-        if command == ADD_BLOCK {
-            let data: i32 = option.parse().unwrap();
-            let mut chain = chain.lock().unwrap();
+            let option = match splitted.get(1) {
+                Some(option) => option,
+                None => {
+                    if command == ADD_BLOCK || command == ADD_PEER {
+                        continue;
+                    }
 
-            let mut previous_digest = String::new();
+                    ""
+                }
+            };
 
-            if !chain.is_empty() {
-                previous_digest = chain.last().unwrap().get_current().to_string();
-            }
-
-            let block = Block::new(data, previous_digest);
-            chain.push(block.clone());
-
-            println!("New block added.");
-
-            broadcast_block(&peers, block);
-        } else if command == SEE_BLOCKCHAIN {
-            list_blocks(&chain);
-        } else if command == ADD_PEER {
-            let full_address = format!("{}:{}", option, LISTENING_PORT);
-            peers.push(full_address.clone());
-
-            println!("Address {} added to peers list.", option);
-
-            let stream = create_stream(&full_address);
-            if stream.is_some() {
-                let remote_chain = get_chain_from_stream(stream.unwrap());
-
+            if command == ADD_BLOCK {
+                let data: i32 = option.parse().unwrap();
                 let mut chain = chain.lock().unwrap();
 
-                if remote_chain.len() > chain.len() {
-                    *chain = remote_chain.clone();
-                    println!("The local chain is outdated compared to the remote one, replaced.");
-                } else {
-                    println!("The local chain is up-to-date compared to the remote one.");
+                let mut previous_digest = String::new();
+
+                if !chain.is_empty() {
+                    previous_digest = chain.last().unwrap().get_current().to_string();
                 }
+
+                let block = Block::new(data, previous_digest);
+                chain.push(block.clone());
+
+                println!("New block added.");
+
+                broadcast_block(&peers, block);
+            } else if command == SEE_BLOCKCHAIN {
+                list_blocks(&chain);
+            } else if command == ADD_PEER {
+                let full_address = format!("{}:{}", option, LISTENING_PORT);
+                peers.push(full_address.clone());
+
+                println!("Address {} added to peers list.", option);
+
+                let stream = create_stream(&full_address);
+                if stream.is_some() {
+                    let remote_chain = get_chain_from_stream(stream.unwrap());
+
+                    let mut chain = chain.lock().unwrap();
+
+                    if remote_chain.len() > chain.len() {
+                        *chain = remote_chain.clone();
+                        println!("The local chain is outdated compared to the remote one, replaced.");
+                    } else {
+                        println!("The local chain is up-to-date compared to the remote one.");
+                    }
+                }
+            } else if command == LIST_PEERS {
+                list_peers(&peers);
+            } else if command == HELP {
+                list_commands();
+            } else if command == EXIT {
+                break;
+            } else {
+                println!("Command not found. Type 'help' to list commands.");
             }
-        } else if command == LIST_PEERS {
-            list_peers(&peers);
-        } else if command == HELP {
-            list_commands();
-        } else if command == EXIT {
-            break;
-        } else {
-            println!("Command not found. Type 'help' to list commands.");
         }
-    }
+    };
+    spawn(main_loop);
 }

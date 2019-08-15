@@ -74,7 +74,9 @@ fn test_big_get_set() {
         }
 
         fn new() -> TestParent {
-            TestParent { child: TestChild::new() }
+            TestParent {
+                child: TestChild::new(),
+            }
         }
     }
 
@@ -88,5 +90,8 @@ fn test_big_get_set() {
 
     engine.register_fn("new_tp", TestParent::new);
 
-    assert_eq!(engine.eval::<i64>("let a = new_tp(); a.child.x = 500; a.child.x"), Ok(500));
+    assert_eq!(
+        engine.eval::<i64>("let a = new_tp(); a.child.x = 500; a.child.x"),
+        Ok(500)
+    );
 }
