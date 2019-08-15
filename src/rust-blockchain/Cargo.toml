@@ -1,0 +1,14 @@
+[package]
+name = "rust-blockchain"
+version = "0.1.0"
+authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
+
+[dependencies]
+time = "0.1"
+sha1 = { version = "0.6.0", features = ["std"] }
+bincode = "1.0.0"
+serde = "*"
+serde_derive = "*"
+
+[lib]
+path = "src/lib.rs"

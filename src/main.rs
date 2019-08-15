@@ -2,6 +2,7 @@ use std::env;
 use std::fmt::Display;
 
 extern crate rhai;
+extern crate rust_blockchain;
 use rhai::{Engine, RegisterFn};
 
 fn showit<T: Display>(x: &mut T) -> () {

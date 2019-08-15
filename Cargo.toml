@@ -15,3 +15,6 @@ include = [
 
 [features]
 debug_msgs = []
+
+[dependencies]
+rust-blockchain = { path = "src/rust-blockchain" }
