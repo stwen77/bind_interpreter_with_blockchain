@@ -6,6 +6,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
+
 mod block;
 mod blocks;
 mod display;
@@ -76,7 +77,37 @@ fn handle_incoming_connections(chain: Arc<Mutex<Vec<Block>>>) {
         set_cursor_into_input();
     }
 }
+extern crate rhai;
+use rhai::{Engine, RegisterFn};
+fn register_blockchain_and_init(engine:&mut Engine)
+{
+    let chain: Arc<Mutex<Vec<Block>>> = Arc::new(Mutex::new(Vec::new()));
+    let mut peers: Vec<String> = Vec::new();
 
+    let listener_chain = chain.clone();
+    spawn(|| handle_incoming_connections(listener_chain));
+
+    let add_block = move |data:i32| {
+        let mut chain = chain.lock().unwrap();
+
+        let mut previous_digest = String::new();
+
+        if !chain.is_empty() {
+            previous_digest = chain.last().unwrap().get_current().to_string();
+        }
+
+        let block = Block::new(data, previous_digest);
+        chain.push(block.clone());
+
+        println!("New block added.");
+
+        broadcast_block(&peers, block);
+    };
+
+    engine.register_fn("add_block", add_block);
+
+    //let see_blockchain = || list_blocks(&chain);
+}
 fn void_main_of_blockchain() {
     clear_screen();
 

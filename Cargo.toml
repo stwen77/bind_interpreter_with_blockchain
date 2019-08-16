@@ -1,20 +1,8 @@
 [package]
-name = "rhai"
+name = "interpreter_with_blockchain"
 version = "0.9.0"
-authors = ["Jonathan Turner", "Lukáš Hozda"]
-description = "Embedded scripting for Rust"
-homepage = "https://github.com/jonathandturner/rhai"
-repository = "https://github.com/jonathandturner/rhai"
-readme = "README.md"
-license = "MIT/Apache-2.0"
-include = [
-    "**/*.rs",
-    "scripts/*.rhai",
-    "Cargo.toml"
-]
 
-[features]
-debug_msgs = []
 
 [dependencies]
-rust-blockchain = { path = "src/rust-blockchain" }
+rust-blockchain = { path = "rust-blockchain" }
+rhai = { path = "rhai"}

@@ -9,6 +9,7 @@ sha1 = { version = "0.6.0", features = ["std"] }
 bincode = "1.0.0"
 serde = "*"
 serde_derive = "*"
+rhai = { path = "../rhai" }
 
 [lib]
 path = "src/lib.rs"
