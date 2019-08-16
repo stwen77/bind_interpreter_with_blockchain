@@ -35,16 +35,15 @@ use std::thread::spawn;
 use rust_blockchain::handle_incoming_connections;
 use rust_blockchain::block::Block;
 use rust_blockchain::blocks::{add_block_from_message, broadcast_block, list_blocks, send_last_block_to_stream};
-//use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
-//use rust_blockchain::help::list_commands;
-//use rust_blockchain::display::{clear_screen, get_input, set_cursor_into_input, set_cursor_into_logs};
-//use rust_blockchain::message::{Message, MessageLabel};
+use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
+use rust_blockchain::help::list_commands;
+use rust_blockchain::display::{clear_screen, get_input, set_cursor_into_input, set_cursor_into_logs};
+use rust_blockchain::message::{Message, MessageLabel};
 
 const LISTENING_PORT: &str = "10000";
 
 use std::thread;
 use std::sync::mpsc;
-
 
 fn register_blockchain_and_init(engine:&mut Engine)
 {
@@ -54,19 +53,111 @@ fn register_blockchain_and_init(engine:&mut Engine)
     let listener_chain = chain.clone();
     spawn(|| handle_incoming_connections(listener_chain));
 
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
+    let rxs = vec![rx1,rx2];
 
-    let add_block = |data:i32| {
-        post_cmd_to_main_loop("add_block");
+    let add_block = move |data:i32| {
+        tx1.send("list_block".to_owned()).unwrap();
     };
 
     engine.register_fn("list_block", add_block);
 
-    let list_block = |data:i32| {
-        post_cmd_to_main_loop("list_block");
+    let list_block = move |data:i32| {
+        tx2.send("list_block".to_owned()).unwrap();
     };
 
-    engine.register_fn("add_block", add_block);
-}
-pub fn post_cmd_to_main_loop(cmd:&str) {
-    println!("{}", cmd);
+    engine.register_fn("add_block", list_block);
+    
+    let main_loop = move|| {
+        loop{
+            let mut input = "".to_string();
+            for rx in rxs.iter() {
+                if let Ok(result)= rx.try_recv()
+                {
+                    input.push_str(&result);
+                    break;
+                }
+            }
+            
+            let splitted: Vec<&str> = input.split(' ').collect();
+
+            /* get() returns &&str, so we mention result type &str
+            and get it from a reference (*) */
+            let command: &str = match splitted.get(0) {
+                Some(value) => *value,
+                None => {
+                    continue;
+                }
+            };
+
+            const ADD_BLOCK: &str = "add_block";
+            const SEE_BLOCKCHAIN: &str = "list_blocks";
+            const ADD_PEER: &str = "add_peer";
+            const LIST_PEERS: &str = "list_peers";
+            const EXIT: &str = "exit";
+            const HELP: &str = "help";
+
+            let option = match splitted.get(1) {
+                Some(option) => option,
+                None => {
+                    if command == ADD_BLOCK || command == ADD_PEER {
+                        continue;
+                    }
+
+                    ""
+                }
+            };
+
+            if command == ADD_BLOCK {
+                let data: i32 = option.parse().unwrap();
+                let mut chain = chain.lock().unwrap();
+
+                let mut previous_digest = String::new();
+
+                if !chain.is_empty() {
+                    previous_digest = chain.last().unwrap().get_current().to_string();
+                }
+
+                let block = Block::new(data, previous_digest);
+                chain.push(block.clone());
+
+                println!("New block added.");
+
+                broadcast_block(&peers, block);
+            } else if command == SEE_BLOCKCHAIN {
+                list_blocks(&chain);
+            } else if command == ADD_PEER {
+                let full_address = format!("{}:{}", option, LISTENING_PORT);
+                peers.push(full_address.clone());
+
+                println!("Address {} added to peers list.", option);
+
+                let stream = create_stream(&full_address);
+                if stream.is_some() {
+                    let remote_chain = get_chain_from_stream(stream.unwrap());
+
+                    let mut chain = chain.lock().unwrap();
+
+                    if remote_chain.len() > chain.len() {
+                        *chain = remote_chain.clone();
+                        println!("The local chain is outdated compared to the remote one, replaced.");
+                    } else {
+                        println!("The local chain is up-to-date compared to the remote one.");
+                    }
+                }
+            } else if command == LIST_PEERS {
+                list_peers(&peers);
+            } else if command == HELP {
+                list_commands();
+            } else if command == EXIT {
+                break;
+            } else {
+                println!("Command not found. Type 'help' to list commands.");
+            }
+        }
+    };
+    spawn(main_loop);
+
+
 }
