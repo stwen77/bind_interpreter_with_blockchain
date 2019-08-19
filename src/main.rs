@@ -22,56 +22,53 @@ fn main() {
         engine.register_fn("print", showit as fn(x: &mut bool) -> ());
         engine.register_fn("print", showit as fn(x: &mut String) -> ());
 
+        register_blockchain_and_init(&mut engine);
+
         match engine.eval_file::<()>(&fname) {
             Ok(_) => (),
             Err(e) => println!("Error: {}", e),
         }
     }
+    loop{}
 }
 
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread::spawn;
 
-use rust_blockchain::handle_incoming_connections;
 use rust_blockchain::block::Block;
-use rust_blockchain::blocks::{add_block_from_message, broadcast_block, list_blocks, send_last_block_to_stream};
-use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
+use rust_blockchain::blocks::{broadcast_block, list_blocks};
+use rust_blockchain::handle_incoming_connections;
 use rust_blockchain::help::list_commands;
-use rust_blockchain::display::{clear_screen, get_input, set_cursor_into_input, set_cursor_into_logs};
-use rust_blockchain::message::{Message, MessageLabel};
+use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
 
 const LISTENING_PORT: &str = "10000";
 
-use std::thread;
-use std::sync::mpsc;
-
-fn register_blockchain_and_init(engine:&mut Engine)
-{
+fn register_blockchain_and_init(engine: &mut Engine) {
     let chain: Arc<Mutex<Vec<Block>>> = Arc::new(Mutex::new(Vec::new()));
     let mut peers: Vec<String> = Vec::new();
 
     let listener_chain = chain.clone();
-    spawn(|| handle_incoming_connections(listener_chain));
+    //todo spawn(|| handle_incoming_connections(listener_chain));
 
     let (tx1, rx) = mpsc::channel();
     let tx2 = mpsc::Sender::clone(&tx1);
     let tx3 = mpsc::Sender::clone(&tx1);
     let tx4 = mpsc::Sender::clone(&tx1);
 
-    let add_block_fn = move |data:i32| {
-        let cmd = format!("add_block {}",data);
+    let add_block_fn = move |data: i64| {
+        let cmd = format!("add_block {}", data);
         tx1.send(cmd).unwrap();
     };
     engine.register_fn("add_block", add_block_fn);
 
-    let list_block_fn = move || {
-        tx2.send("list_block".to_owned()).unwrap();
+    let list_blocks_fn = move || {
+        tx2.send("list_blocks".to_owned()).unwrap();
     };
-    engine.register_fn("list_block", list_block_fn);
+    engine.register_fn("list_blocks", list_blocks_fn);
 
-    let add_peer_fn = move |peer:String| {
-        let cmd = format!("add_peer {}",peer);
-        tx3.send("add_peer".to_owned()).unwrap();
+    let add_peer_fn = move |peer: String| {
+        let cmd = format!("add_peer {}", peer);
+        tx3.send(cmd).unwrap();
     };
     engine.register_fn("add_peer", add_peer_fn);
 
@@ -80,10 +77,11 @@ fn register_blockchain_and_init(engine:&mut Engine)
     };
     engine.register_fn("list_peers", list_peers_fn);
 
-    let main_loop = move|| {
-        loop{
-            let input = rx.recv().unwrap();
+    let main_loop = move || {
+        loop {
             
+            let input = rx.recv().unwrap_or("".to_string());
+            //println!("input {}",input);
             let splitted: Vec<&str> = input.split(' ').collect();
 
             /* get() returns &&str, so we mention result type &str
@@ -112,7 +110,6 @@ fn register_blockchain_and_init(engine:&mut Engine)
                     ""
                 }
             };
-
             if command == ADD_BLOCK {
                 let data: i32 = option.parse().unwrap();
                 let mut chain = chain.lock().unwrap();
@@ -128,28 +125,30 @@ fn register_blockchain_and_init(engine:&mut Engine)
 
                 println!("New block added.");
 
-                broadcast_block(&peers, block);
+            //todo broadcast_block(&peers, block);
             } else if command == SEE_BLOCKCHAIN {
+                println!("list blocks.");
                 list_blocks(&chain);
             } else if command == ADD_PEER {
                 let full_address = format!("{}:{}", option, LISTENING_PORT);
                 peers.push(full_address.clone());
 
                 println!("Address {} added to peers list.", option);
+            /*
+            let stream = create_stream(&full_address);
+            if stream.is_some() {
+                let remote_chain = get_chain_from_stream(stream.unwrap());
 
-                let stream = create_stream(&full_address);
-                if stream.is_some() {
-                    let remote_chain = get_chain_from_stream(stream.unwrap());
+                let mut chain = chain.lock().unwrap();
 
-                    let mut chain = chain.lock().unwrap();
-
-                    if remote_chain.len() > chain.len() {
-                        *chain = remote_chain.clone();
-                        println!("The local chain is outdated compared to the remote one, replaced.");
-                    } else {
-                        println!("The local chain is up-to-date compared to the remote one.");
-                    }
+                if remote_chain.len() > chain.len() {
+                    *chain = remote_chain.clone();
+                    println!("The local chain is outdated compared to the remote one, replaced.");
+                } else {
+                    println!("The local chain is up-to-date compared to the remote one.");
                 }
+
+            }*/
             } else if command == LIST_PEERS {
                 list_peers(&peers);
             } else if command == HELP {
@@ -157,11 +156,9 @@ fn register_blockchain_and_init(engine:&mut Engine)
             } else if command == EXIT {
                 break;
             } else {
-                println!("Command not found. Type 'help' to list commands.");
+                //println!("Command not found. Type 'help' to list commands.");
             }
         }
     };
     spawn(main_loop);
-
-
 }
