@@ -58,22 +58,27 @@ fn register_blockchain_and_init(engine:&mut Engine)
     let tx3 = mpsc::Sender::clone(&tx1);
     let tx4 = mpsc::Sender::clone(&tx1);
 
-    let add_block = move |data:i32| {
+    let add_block_fn = move |data:i32| {
         let cmd = format!("add_block {}",data);
         tx1.send(cmd).unwrap();
     };
-    engine.register_fn("add_block", add_block);
+    engine.register_fn("add_block", add_block_fn);
 
-    let list_block = move || {
+    let list_block_fn = move || {
         tx2.send("list_block".to_owned()).unwrap();
     };
-    engine.register_fn("list_block", list_block);
+    engine.register_fn("list_block", list_block_fn);
 
-    let add_peer = move |peer:String| {
+    let add_peer_fn = move |peer:String| {
         let cmd = format!("add_peer {}",peer);
         tx3.send("add_peer".to_owned()).unwrap();
     };
-    engine.register_fn("add_peer", add_peer);
+    engine.register_fn("add_peer", add_peer_fn);
+
+    let list_peers_fn = move || {
+        tx4.send("list_peers".to_owned()).unwrap();
+    };
+    engine.register_fn("list_peers", list_peers_fn);
 
     let main_loop = move|| {
         loop{
