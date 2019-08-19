@@ -53,9 +53,9 @@ fn register_blockchain_and_init(engine:&mut Engine)
     let listener_chain = chain.clone();
     spawn(|| handle_incoming_connections(listener_chain));
 
-    let (tx1, rx1) = mpsc::channel();
-    let (tx2, rx2) = mpsc::channel();
-    let rxs = vec![rx1,rx2];
+    let (tx1, rx) = mpsc::channel();
+    let tx2 = mpsc::Sender::clone(&tx1);
+    let tx3 = mpsc::Sender::clone(&tx1);
 
     let add_block = move |data:i32| {
         tx1.send("list_block".to_owned()).unwrap();
@@ -68,17 +68,10 @@ fn register_blockchain_and_init(engine:&mut Engine)
     };
 
     engine.register_fn("add_block", list_block);
-    
+
     let main_loop = move|| {
         loop{
-            let mut input = "".to_string();
-            for rx in rxs.iter() {
-                if let Ok(result)= rx.try_recv()
-                {
-                    input.push_str(&result);
-                    break;
-                }
-            }
+            let mut input = rx.recv().unwrap();
             
             let splitted: Vec<&str> = input.split(' ').collect();
 
