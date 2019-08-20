@@ -111,6 +111,8 @@ fn register_blockchain_and_init(engine: &mut Engine) {
                 }
             };
             if command == ADD_BLOCK {
+                let data_vec: Vec<u8> = option.chars().map(|x| x.to_digit(16).unwrap() as u8).collect();
+                println!("!!!!data vec is {:?}", data_vec);
                 let data: i32 = option.parse().unwrap();
                 let mut chain = chain.lock().unwrap();
 
