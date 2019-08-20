@@ -32,7 +32,7 @@ pub fn list_blocks(chain: &Arc<Mutex<Vec<Block>>>) {
         let content = block.get_content();
         println!("Hash: {}", block.get_current());
         println!("Timestamp: {}", content.get_timestamp());
-        println!("Data: {} \n\n", content.get_data());
+        println!("Data: {:?} \n\n", content.get_data());
     }
 }
 

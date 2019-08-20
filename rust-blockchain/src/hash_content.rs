@@ -5,7 +5,7 @@ use time;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct HashContent {
     timestamp: i64,
-    data: i32,
+    data: Vec<u8>,
 }
 
 impl HashContent {
@@ -19,7 +19,7 @@ impl HashContent {
     /// Returns:
     ///
     /// hash content with current timestamp and given data
-    pub fn new(data: i32) -> HashContent {
+    pub fn new(data: Vec<u8>) -> HashContent {
         HashContent {
             timestamp: time::now_utc().to_timespec().sec,
             data: data,
@@ -40,7 +40,7 @@ impl HashContent {
     /// Returns:
     ///
     /// block data
-    pub fn get_data(&self) -> i32 {
-        self.data
+    pub fn get_data(&self) -> Vec<u8> {
+        self.data.clone()
     }
 }

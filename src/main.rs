@@ -55,7 +55,7 @@ fn register_blockchain_and_init(engine: &mut Engine) {
     let tx3 = mpsc::Sender::clone(&tx1);
     let tx4 = mpsc::Sender::clone(&tx1);
 
-    let add_block_fn = move |data: i64| {
+    let add_block_fn = move |data: String| {
         let cmd = format!("add_block {}", data);
         tx1.send(cmd).unwrap();
     };
@@ -113,7 +113,6 @@ fn register_blockchain_and_init(engine: &mut Engine) {
             if command == ADD_BLOCK {
                 let data_vec: Vec<u8> = option.chars().map(|x| x.to_digit(16).unwrap() as u8).collect();
                 println!("!!!!data vec is {:?}", data_vec);
-                let data: i32 = option.parse().unwrap();
                 let mut chain = chain.lock().unwrap();
 
                 let mut previous_digest = String::new();
@@ -122,7 +121,7 @@ fn register_blockchain_and_init(engine: &mut Engine) {
                     previous_digest = chain.last().unwrap().get_current().to_string();
                 }
 
-                let block = Block::new(data, previous_digest);
+                let block = Block::new(&data_vec, previous_digest);
                 chain.push(block.clone());
 
                 println!("New block added.");

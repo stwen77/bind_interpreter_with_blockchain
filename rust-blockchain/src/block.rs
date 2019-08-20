@@ -25,11 +25,11 @@ impl Block {
     ///
     /// new block
     pub fn new(
-        data: i32,
+        data: &Vec<u8>,
         previous: String,
     ) -> Block {
 
-        let content = HashContent::new(data);
+        let content = HashContent::new(data.clone());
         let bytes = serialize(&content).unwrap();
         let digest = Sha1::from(bytes).hexdigest();
 
