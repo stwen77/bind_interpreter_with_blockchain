@@ -14,6 +14,7 @@ pub mod hash_content;
 pub mod help;
 pub mod message;
 pub mod peers;
+pub mod transaction;
 
 use std::io::Read;
 use std::net::TcpListener;
