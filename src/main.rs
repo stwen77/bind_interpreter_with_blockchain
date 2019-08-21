@@ -29,7 +29,7 @@ fn main() {
             Err(e) => println!("Error: {}", e),
         }
     }
-    loop{}
+    loop {}
 }
 
 use std::sync::{mpsc, Arc, Mutex};
@@ -40,7 +40,7 @@ use rust_blockchain::blocks::{broadcast_block, list_blocks};
 use rust_blockchain::handle_incoming_connections;
 use rust_blockchain::help::list_commands;
 use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
-use rust_blockchain::transaction::{transaction,transaction_module};
+use rust_blockchain::transaction::{transaction, transaction_module};
 const LISTENING_PORT: &str = "10000";
 
 fn register_blockchain_and_init(engine: &mut Engine) {
@@ -79,7 +79,6 @@ fn register_blockchain_and_init(engine: &mut Engine) {
 
     let main_loop = move || {
         loop {
-            
             let input = rx.recv().unwrap_or("".to_string());
             //println!("input {}",input);
             let splitted: Vec<&str> = input.split(' ').collect();
