@@ -49,6 +49,10 @@ impl Block {
         &self.current
     }
 
+    pub fn get_previous(&self) -> &str {
+        &self.previous
+    }
+
     /// Getter of the hashed content.
     ///
     /// Returns:

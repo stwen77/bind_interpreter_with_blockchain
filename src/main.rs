@@ -1,6 +1,7 @@
 use std::env;
 use std::fmt::Display;
 
+extern crate bincode;
 extern crate rhai;
 extern crate rust_blockchain;
 use rhai::{Engine, RegisterFn};
@@ -32,6 +33,7 @@ fn main() {
     loop {}
 }
 
+use bincode::serialize;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::spawn;
 
@@ -56,6 +58,7 @@ fn register_blockchain_and_init(engine: &mut Engine) {
     let tx4 = mpsc::Sender::clone(&tx1);
     let tx5 = mpsc::Sender::clone(&tx1);
     let tx6 = mpsc::Sender::clone(&tx1);
+    let tx7 = mpsc::Sender::clone(&tx1);
 
     let add_block_fn = move |data: String| {
         let cmd = format!("add_block {}", data);
@@ -79,13 +82,25 @@ fn register_blockchain_and_init(engine: &mut Engine) {
     };
     engine.register_fn("list_peers", list_peers_fn);
 
+    let add_block_from_local_transactions_fn = move || {
+        tx7.send("add_block_from_local_transactions".to_owned())
+            .unwrap();
+    };
+    engine.register_fn(
+        "add_block_from_local_transactions",
+        add_block_from_local_transactions_fn,
+    );
+
     let mut transactions = transaction_module::new();
 
     let create_and_broadcast_transaction_fn = move |from: String, to: String, value: i64| {
         let cmd = format!("create_and_broadcast_transaction {} {} {}", from, to, value);
         tx5.send(cmd).unwrap();
     };
-    engine.register_fn("create_and_broadcast_transaction", create_and_broadcast_transaction_fn);
+    engine.register_fn(
+        "create_and_broadcast_transaction",
+        create_and_broadcast_transaction_fn,
+    );
 
     let list_transaction_local_fn = move || {
         tx6.send("list_transaction_local".to_owned()).unwrap();
@@ -173,12 +188,26 @@ fn register_blockchain_and_init(engine: &mut Engine) {
             } else if command == "create_and_broadcast_transaction" {
                 let from = splitted.get(1).unwrap().to_string();
                 let to = splitted.get(2).unwrap().to_string();
-                let value:u32 = splitted.get(3).unwrap().parse().unwrap();
+                let value: u32 = splitted.get(3).unwrap().parse().unwrap();
                 transactions.create_and_broadcast_transaction(from, to, value);
             } else if command == "list_transaction_local" {
                 transactions.list_transaction_local();
-            }
-            else {
+            } else if command == "add_block_from_local_transactions" {
+                let mut chain = chain.lock().unwrap();
+                let data_vec = serialize(transactions.get_current()).unwrap();
+                let mut previous_digest = String::new();
+
+                if !chain.is_empty() {
+                    previous_digest = chain.last().unwrap().get_current().to_string();
+                }
+
+                let block = Block::new(&data_vec, previous_digest);
+                chain.push(block.clone());
+
+                println!("New block added.");
+
+            //todo broadcast_block(&peers, block);
+            } else {
                 //println!("Command not found. Type 'help' to list commands.");
             }
         }

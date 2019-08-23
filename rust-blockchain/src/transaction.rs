@@ -1,9 +1,10 @@
-#[derive(Debug,Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct transaction {
     from: String,
     to  : String,
     value:u32,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct transaction_module {
     current : Vec<transaction>,
 }
@@ -36,6 +37,9 @@ impl transaction_module {
         for x in self.current.iter(){
             println!("{:?}", x);
         }
+    }
+    pub fn get_current(&self)-> &Vec<transaction>{
+        &self.current
     }
 }
 impl transaction {
