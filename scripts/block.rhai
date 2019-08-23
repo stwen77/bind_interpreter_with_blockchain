@@ -5,3 +5,8 @@ list_blocks();
 add_peer("0.0.0.0");
 list_peers();
 
+
+
+create_and_broadcast_transaction("AAA","BBB",32);
+create_and_broadcast_transaction("ccc","ddd",32);
+list_transaction_local();

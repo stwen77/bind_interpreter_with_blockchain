@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct transaction {
     from: String,
     to  : String,
@@ -28,7 +28,7 @@ impl transaction_module {
     }
 
     pub fn receive_transaction(&mut self, transac :&transaction ) {
-
+        self.current.push(transac.clone());
     }
 
     pub fn list_transaction_local(&self){
