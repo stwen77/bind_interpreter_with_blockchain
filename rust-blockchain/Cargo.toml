@@ -9,6 +9,8 @@ sha1 = { version = "0.6.0", features = ["std"] }
 bincode = "1.0.0"
 serde = "*"
 serde_derive = "*"
+sha2 = "0.8.0"
+secp256k1 = "0.12.0"
 
 [lib]
 path = "src/lib.rs"
