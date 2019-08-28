@@ -8,6 +8,9 @@ extern crate serde_derive;
 
 extern crate secp256k1;
 extern crate sha2;
+#[macro_use]
+extern crate lazy_static;
+extern crate hex;
 
 pub mod block;
 pub mod blocks;
@@ -17,6 +20,7 @@ pub mod help;
 pub mod message;
 pub mod peers;
 pub mod transaction;
+pub mod identity;
 
 use std::io::Read;
 use std::net::TcpListener;
