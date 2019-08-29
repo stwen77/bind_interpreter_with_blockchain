@@ -1,7 +1,9 @@
 //copy from ark ecosystem
 use hex;
 use secp256k1::{All, Error, Message, PublicKey, Secp256k1, SecretKey};
-use sha2::{Digest, Sha256};
+use sha2::{Sha256};
+use ripemd160::{Digest, Ripemd160};
+use bs58;
 
 lazy_static! {
     pub static ref SECP256K1: Secp256k1<All> = Secp256k1::new();
@@ -37,7 +39,14 @@ pub fn address_from_public_key(public_key: &PublicKey, network_version: Option<u
         Some(network_version) => network_version,
         None => 0,
     };
-    "".to_owned()
+
+    let bytes = hex::decode(public_key.to_string()).unwrap();
+
+    let ripemd160 = Ripemd160::digest(&bytes);
+    let mut data = vec![];
+    data.push(network_version);
+    data.extend_from_slice(&ripemd160);
+    bs58::encode(data).into_string()
 }
 pub fn address_from_passphrase(passphrase: &str, network_version: Option<u8>) -> String {
     let private_key = privatekey_from_passphrase(passphrase);
@@ -47,7 +56,17 @@ pub fn address_from_private_key(private_key: &PrivateKey, network_version: Optio
     let public_key = publickey_from_private_key(private_key);
     address_from_public_key(&public_key, network_version)
 }
+pub fn address_validate(address: &str, network_version: Option<u8>) -> bool {
+    let network_version = match network_version {
+        Some(network_version) => network_version,
+        None => 0,
+    };
 
+    let bytes = bs58::decode(address).into_vec().unwrap();
+
+    return *bytes.first().unwrap() == network_version;
+
+}
 #[cfg(test)]
 mod test {
     use super::*;
@@ -67,5 +86,17 @@ mod test {
             public_key.unwrap().to_string(),
             "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192"
         );
+    }
+    #[test]
+    fn test_address_from_passphrase() {
+        let address = address_from_passphrase(
+            "this is a top secret passphrase",
+            Some(0x1e),
+        );
+        assert_eq!(
+            address,
+            "2r8UNhjyYhwqakcFLoUcLKrBmPm7f"
+        );
+        assert!(address_validate("2r8UNhjyYhwqakcFLoUcLKrBmPm7f", Some(0x1e)));
     }
 }
