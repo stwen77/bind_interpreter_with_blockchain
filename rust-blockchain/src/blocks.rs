@@ -1,20 +1,14 @@
 //! Blocks routines.
 
-use std::net::TcpStream;
 use std::io::Write;
-use std::sync::{
-    Arc,
-    Mutex,
-};
+use std::net::TcpStream;
+use std::sync::{Arc, Mutex};
 
 use bincode::serialize;
 
 use block::Block;
 
-use message::{
-    Message,
-    MessageLabel,
-};
+use message::{Message, MessageLabel};
 
 use peers::create_stream;
 
@@ -24,11 +18,9 @@ use peers::create_stream;
 ///
 /// `chain` - the chain to modify
 pub fn list_blocks(chain: &Arc<Mutex<Vec<Block>>>) {
-
     let chain = chain.lock().unwrap();
 
     for block in chain.iter() {
-
         let content = block.get_content();
         println!("Previous Hash: {}", block.get_previous());
         println!("Hash: {}", block.get_current());
@@ -44,19 +36,14 @@ pub fn list_blocks(chain: &Arc<Mutex<Vec<Block>>>) {
 /// `peers` - list of peers
 /// `block` - the block object to send
 pub fn broadcast_block(peers: &Vec<String>, block: Block) {
-
     /* we voluntary halt the program if serialization and stream buffer write fails;
-       in fact, if these problem happen, that means something is clearly wrong */
+    in fact, if these problem happen, that means something is clearly wrong */
 
-    let message = Message::new(
-        vec![block],
-        MessageLabel::SendBlock,
-    );
+    let message = Message::new(vec![block], MessageLabel::SendBlock);
 
     let bytes = serialize(&message).unwrap();
 
     for peer in peers.iter() {
-
         let address_part: Vec<&str> = peer.split(':').collect();
         let address = address_part.get(0).unwrap();
 
@@ -81,11 +68,7 @@ pub fn broadcast_block(peers: &Vec<String>, block: Block) {
 ///
 /// `chain` - the chain to update
 /// `message` - the message from where extract the unique block
-pub fn add_block_from_message(
-    chain: &Arc<Mutex<Vec<Block>>>,
-    message: &Message,
-) {
-
+pub fn add_block_from_message(chain: &Arc<Mutex<Vec<Block>>>, message: &Message) {
     let block = message.get_blocks().first().unwrap();
 
     let mut chain = chain.lock().unwrap();
@@ -100,17 +83,10 @@ pub fn add_block_from_message(
 ///
 /// `stream` - the stream where data must be written
 /// `chain` - the chain to use
-pub fn send_last_block_to_stream(
-    mut stream: TcpStream,
-    chain: &Arc<Mutex<Vec<Block>>>,
-) {
-
+pub fn send_last_block_to_stream(mut stream: TcpStream, chain: &Arc<Mutex<Vec<Block>>>) {
     println!("Last block requested.");
 
-    let mut message = Message::new(
-        Vec::new(),
-        MessageLabel::SendBlock,
-    );
+    let mut message = Message::new(Vec::new(), MessageLabel::SendBlock);
 
     let chain = chain.lock().unwrap();
 

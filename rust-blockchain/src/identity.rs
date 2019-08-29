@@ -1,7 +1,7 @@
 //copy from ark ecosystem
-use secp256k1::{Error, Message, SecretKey,All, Secp256k1, PublicKey};
-use sha2::{Digest, Sha256};
 use hex;
+use secp256k1::{All, Error, Message, PublicKey, Secp256k1, SecretKey};
+use sha2::{Digest, Sha256};
 
 lazy_static! {
     pub static ref SECP256K1: Secp256k1<All> = Secp256k1::new();
@@ -32,6 +32,21 @@ pub fn publickey_from_private_key(private_key: &PrivateKey) -> PublicKey {
 }
 
 //address
+pub fn address_from_public_key(public_key: &PublicKey, network_version: Option<u8>) -> String {
+    let network_version = match network_version {
+        Some(network_version) => network_version,
+        None => 0,
+    };
+    "".to_owned()
+}
+pub fn address_from_passphrase(passphrase: &str, network_version: Option<u8>) -> String {
+    let private_key = privatekey_from_passphrase(passphrase);
+    address_from_private_key(&private_key, network_version)
+}
+pub fn address_from_private_key(private_key: &PrivateKey, network_version: Option<u8>) -> String {
+    let public_key = publickey_from_private_key(private_key);
+    address_from_public_key(&public_key, network_version)
+}
 
 #[cfg(test)]
 mod test {

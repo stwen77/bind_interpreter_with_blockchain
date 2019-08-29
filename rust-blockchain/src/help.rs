@@ -2,7 +2,6 @@
 
 /// List available commands.
 pub fn list_commands() {
-
     println!("add_block [data] - append a block into the local blockchain");
     println!("Example: add_block 10 \n");
     println!("list_blocks - list the local chain blocks\n");

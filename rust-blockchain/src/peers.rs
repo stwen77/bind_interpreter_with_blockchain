@@ -1,25 +1,13 @@
 //! Peers routines.
 
-use std::net::{
-    SocketAddr,
-    TcpStream,
-};
-use std::io::{
-    Write,
-    Read,
-};
-use std::time::Duration;
+use std::io::{Read, Write};
+use std::net::{SocketAddr, TcpStream};
 use std::str::FromStr;
+use std::time::Duration;
 
-use bincode::{
-    deserialize,
-    serialize,
-};
+use bincode::{deserialize, serialize};
 
-use message::{
-    Message,
-    MessageLabel,
-};
+use message::{Message, MessageLabel};
 
 use block::Block;
 
@@ -33,7 +21,6 @@ use block::Block;
 ///
 /// the created TCP stream
 pub fn create_stream(address: &str) -> Option<TcpStream> {
-
     println!("Connecting to {}...", address);
 
     let socket_address = match SocketAddr::from_str(&address) {
@@ -44,10 +31,7 @@ pub fn create_stream(address: &str) -> Option<TcpStream> {
         }
     };
 
-    let stream = match TcpStream::connect_timeout(
-        &socket_address,
-        Duration::from_secs(5),
-    ) {
+    let stream = match TcpStream::connect_timeout(&socket_address, Duration::from_secs(5)) {
         Ok(stream) => stream,
         Err(_) => {
             println!("The peer cannot be joined.");
@@ -70,11 +54,7 @@ pub fn create_stream(address: &str) -> Option<TcpStream> {
 ///
 /// the received remote chain
 pub fn get_chain_from_stream(mut stream: TcpStream) -> Vec<Block> {
-
-    let message = Message::new(
-        Vec::new(),
-        MessageLabel::AskForAllBlocks,
-    );
+    let message = Message::new(Vec::new(), MessageLabel::AskForAllBlocks);
 
     let bytes = serialize(&message).unwrap();
 
@@ -86,7 +66,9 @@ pub fn get_chain_from_stream(mut stream: TcpStream) -> Vec<Block> {
     const ONE_BLOCK_MESSAGE_MAX_LENGTH: usize = 80;
 
     let mut buffer: Vec<u8> = vec![0; ONE_BLOCK_MESSAGE_MAX_LENGTH];
-    stream.read(&mut buffer).expect("Received message is too long.");
+    stream
+        .read(&mut buffer)
+        .expect("Received message is too long.");
 
     let message: Message = deserialize(&buffer).unwrap();
     message.get_blocks().clone()
@@ -98,7 +80,6 @@ pub fn get_chain_from_stream(mut stream: TcpStream) -> Vec<Block> {
 ///
 /// `peers` - the list of peers to display
 pub fn list_peers(peers: &Vec<String>) {
-
     for peer in peers.iter() {
         println!("{}", peer);
     }

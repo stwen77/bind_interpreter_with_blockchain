@@ -2,7 +2,6 @@
 
 use std::io::stdin;
 
-
 /// Clear the whole terminal content and generate the default content (bars and titles). Refactored as used multiple times.
 pub fn clear_screen() {
     println!("");

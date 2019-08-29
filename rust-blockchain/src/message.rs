@@ -15,7 +15,6 @@ pub struct Message {
 }
 
 impl Message {
-
     /// Message constructor.
     ///
     /// Args:

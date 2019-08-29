@@ -13,7 +13,6 @@ pub struct Block {
 }
 
 impl Block {
-
     /// One block constructor. Creates the block from the given data and previous digest. Calculates its own hash digest.
     ///
     /// Args:
@@ -24,11 +23,7 @@ impl Block {
     /// Returns:
     ///
     /// new block
-    pub fn new(
-        data: &Vec<u8>,
-        previous: String,
-    ) -> Block {
-
+    pub fn new(data: &Vec<u8>, previous: String) -> Block {
         let content = HashContent::new(data.clone());
         let bytes = serialize(&content).unwrap();
         let digest = Sha1::from(bytes).hexdigest();
@@ -62,4 +57,3 @@ impl Block {
         &self.content
     }
 }
-

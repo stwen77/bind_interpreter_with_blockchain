@@ -9,7 +9,6 @@ pub struct HashContent {
 }
 
 impl HashContent {
-
     /// Creates a brand new hash content.
     ///
     /// Args:

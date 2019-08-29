@@ -17,10 +17,10 @@ pub mod blocks;
 pub mod display;
 pub mod hash_content;
 pub mod help;
+pub mod identity;
 pub mod message;
 pub mod peers;
 pub mod transaction;
-pub mod identity;
 
 use std::io::Read;
 use std::net::TcpListener;
@@ -84,4 +84,3 @@ pub fn handle_incoming_connections(chain: Arc<Mutex<Vec<Block>>>) {
         set_cursor_into_input();
     }
 }
-
