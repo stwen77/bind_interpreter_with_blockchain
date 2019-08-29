@@ -1,10 +1,13 @@
-#[derive(Serialize, Deserialize, Clone, Debug)]
+use bincode::{deserialize, serialize};
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct transaction {
-    from: String,
-    to: String,
-    value: u32,
+    pub from: String,
+    pub to: String,
+    pub value: u32,
+    pub sender_public_key: String,
+    pub signature: String,
 }
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct transaction_module {
     current: Vec<transaction>,
 }
@@ -20,8 +23,8 @@ impl transaction_module {
         to: String,
         value: u32,
     ) -> Result<(), ()> {
-        let transac = transaction::new(from, to, value);
-
+        let mut transac = transaction::new(from, to);
+        transac.value = value;
         //todo verify transaction
 
         self.current.push(transac);
@@ -46,11 +49,17 @@ impl transaction_module {
     }
 }
 impl transaction {
-    fn new(from: String, to: String, value: u32) -> Self {
+    fn new(from: String, to: String) -> Self {
         transaction {
             from: from,
             to: to,
-            value: value,
+            ..Default::default()
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn serialize_and_deserialize_transaction() {}
 }

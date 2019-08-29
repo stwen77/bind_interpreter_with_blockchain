@@ -1,9 +1,9 @@
 //copy from ark ecosystem
-use hex;
-use secp256k1::{All, Error, Message, PublicKey, Secp256k1, SecretKey};
-use sha2::{Sha256};
-use ripemd160::{Digest, Ripemd160};
 use bs58;
+use hex;
+use ripemd160::{Digest, Ripemd160};
+use secp256k1::{All, Error, Message, PublicKey, Secp256k1, SecretKey};
+use sha2::Sha256;
 
 lazy_static! {
     pub static ref SECP256K1: Secp256k1<All> = Secp256k1::new();
@@ -65,7 +65,6 @@ pub fn address_validate(address: &str, network_version: Option<u8>) -> bool {
     let bytes = bs58::decode(address).into_vec().unwrap();
 
     return *bytes.first().unwrap() == network_version;
-
 }
 #[cfg(test)]
 mod test {
@@ -89,14 +88,11 @@ mod test {
     }
     #[test]
     fn test_address_from_passphrase() {
-        let address = address_from_passphrase(
-            "this is a top secret passphrase",
-            Some(0x1e),
-        );
-        assert_eq!(
-            address,
-            "2r8UNhjyYhwqakcFLoUcLKrBmPm7f"
-        );
-        assert!(address_validate("2r8UNhjyYhwqakcFLoUcLKrBmPm7f", Some(0x1e)));
+        let address = address_from_passphrase("this is a top secret passphrase", Some(0x1e));
+        assert_eq!(address, "2r8UNhjyYhwqakcFLoUcLKrBmPm7f");
+        assert!(address_validate(
+            "2r8UNhjyYhwqakcFLoUcLKrBmPm7f",
+            Some(0x1e)
+        ));
     }
 }

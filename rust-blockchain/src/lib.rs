@@ -10,9 +10,9 @@ extern crate secp256k1;
 extern crate sha2;
 #[macro_use]
 extern crate lazy_static;
+extern crate bs58;
 extern crate hex;
 extern crate ripemd160;
-extern crate bs58;
 
 pub mod block;
 pub mod blocks;
