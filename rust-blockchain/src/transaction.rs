@@ -1,9 +1,14 @@
 use bincode::{deserialize, serialize};
+use identity::*;
+use secp256k1::Signature;
+use sha2::{Digest, Sha256};
+use bs58;
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct transaction {
     pub from: String,
     pub to: String,
-    pub value: u32,
+    pub value: Vec<u8>,
     pub sender_public_key: String,
     pub signature: String,
 }
@@ -17,14 +22,11 @@ impl transaction_module {
         transaction_module { current: vec![] }
     }
 
-    pub fn create_and_broadcast_transaction(
-        &mut self,
-        from: String,
-        to: String,
-        value: u32,
-    ) -> Result<(), ()> {
-        let mut transac = transaction::new(from, to);
-        transac.value = value;
+    pub fn create_and_broadcast_transaction(&mut self, from: String, to: String) -> Result<(), ()> {
+        let mut transac = transaction::new();
+        transac.from = from;
+        transac.to = to;
+
         //todo verify transaction
 
         self.current.push(transac);
@@ -49,17 +51,47 @@ impl transaction_module {
     }
 }
 impl transaction {
-    fn new(from: String, to: String) -> Self {
+    fn new() -> Self {
         transaction {
-            from: from,
-            to: to,
             ..Default::default()
         }
+    }
+    pub fn sign(&mut self, passphrase: &str) -> &Self {
+        let private_key = privatekey_from_passphrase(passphrase);
+        let public_key = publickey_from_private_key(&private_key);
+        self.sender_public_key = public_key.to_string();
+        self.signature = privatekey_to_signature(self.value.as_slice(), passphrase);
+        self
+    }
+    fn internal_verify(&self, sender_public_key: &str, signature: &str, bytes: &[u8]) -> bool {
+        let hash = Sha256::digest(&bytes);
+        let msg = secp256k1::Message::from_slice(&hash).unwrap();
+
+        let sig = Signature::from_der(&hex::decode(signature).unwrap()).unwrap();
+        let pk = publickey_from_hex(&sender_public_key);
+        SECP256K1.verify(&msg, &sig, &pk).is_ok()
+    }
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut buffer = vec![];
+
+        return buffer;
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
     #[test]
-    fn serialize_and_deserialize_transaction() {}
+    fn sign_and_verify() {
+        let bytes:Vec<u8> = vec![1,2,3,4,5];
+        let passphrase = "this is a passphrase";
+
+        let transac = transaction::new();
+
+
+
+
+
+        assert!(false);
+    }
 }
