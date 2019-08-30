@@ -93,8 +93,8 @@ fn register_blockchain_and_init(engine: &mut Engine) {
 
     let mut transactions = transaction_module::new();
 
-    let create_and_broadcast_transaction_fn = move |from: String, to: String, value: i64| {
-        let cmd = format!("create_and_broadcast_transaction {} {} {}", from, to, value);
+    let create_and_broadcast_transaction_fn = move |from: String, to: String| {
+        let cmd = format!("create_and_broadcast_transaction {} {}", from, to);
         tx5.send(cmd).unwrap();
     };
     engine.register_fn(
@@ -188,8 +188,8 @@ fn register_blockchain_and_init(engine: &mut Engine) {
             } else if command == "create_and_broadcast_transaction" {
                 let from = splitted.get(1).unwrap().to_string();
                 let to = splitted.get(2).unwrap().to_string();
-                let value: u32 = splitted.get(3).unwrap().parse().unwrap();
-                transactions.create_and_broadcast_transaction(from, to, value);
+                //let value: u32 = splitted.get(3).unwrap().parse().unwrap();
+                transactions.create_and_broadcast_transaction(from, to);
             } else if command == "list_transaction_local" {
                 transactions.list_transaction_local();
             } else if command == "add_block_from_local_transactions" {

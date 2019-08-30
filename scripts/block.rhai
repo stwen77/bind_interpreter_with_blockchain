@@ -7,8 +7,8 @@ list_peers();
 
 
 
-create_and_broadcast_transaction("AAA","BBB",32);
-create_and_broadcast_transaction("ccc","ddd",32);
+create_and_broadcast_transaction("AAA","BBB");
+create_and_broadcast_transaction("ccc","ddd");
 list_transaction_local();
 add_block_from_local_transactions();
 list_blocks();
