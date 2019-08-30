@@ -69,6 +69,7 @@ impl transaction {
 
         let sig = Signature::from_der(&hex::decode(signature).unwrap()).unwrap();
         let pk = publickey_from_hex(&sender_public_key);
+        
         SECP256K1.verify(&msg, &sig, &pk).is_ok()
     }
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -81,17 +82,21 @@ impl transaction {
 #[cfg(test)]
 mod test {
     use super::*;
+    use super::super::identity;
     #[test]
     fn sign_and_verify() {
         let bytes:Vec<u8> = vec![1,2,3,4,5];
         let passphrase = "this is a passphrase";
 
-        let transac = transaction::new();
-
-
-
-
-
-        assert!(false);
+        let mut transac = transaction::new();
+        transac.value = bytes;
+        
+        transac.sign(passphrase);
+        transac.sender_public_key = identity::publickkey_from_passphrase(passphrase).to_string();
+        
+        let result = transac.internal_verify(&transac.sender_public_key, &transac.signature, transac.value.as_slice());
+        assert!(result);
+        let result = transac.internal_verify(&transac.sender_public_key, &transac.signature, &[1,2]);
+        assert!(!result);
     }
 }
