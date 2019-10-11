@@ -23,13 +23,18 @@ fn main() {
         engine.register_fn("print", showit as fn(x: &mut bool) -> ());
         engine.register_fn("print", showit as fn(x: &mut String) -> ());
 
-        register_blockchain_and_init(&mut engine);
+        let chain: Arc<Mutex<Vec<Block>>> = Arc::new(Mutex::new(Vec::new()));
+        register_blockchain_and_init(&mut engine, chain.clone());
 
         match engine.eval_file::<()>(&fname) {
             Ok(_) => (),
             Err(e) => println!("Error: {}", e),
         }
+
+        use rust_blockchain::http::run_display_server;
+        run_display_server(chain);
     }
+
     loop {}
 }
 
@@ -45,8 +50,7 @@ use rust_blockchain::peers::{create_stream, get_chain_from_stream, list_peers};
 use rust_blockchain::transaction::{transaction, transaction_module};
 const LISTENING_PORT: &str = "10000";
 
-fn register_blockchain_and_init(engine: &mut Engine) {
-    let chain: Arc<Mutex<Vec<Block>>> = Arc::new(Mutex::new(Vec::new()));
+fn register_blockchain_and_init(engine: &mut Engine, chain: Arc<Mutex<Vec<Block>>>) {
     let mut peers: Vec<String> = Vec::new();
 
     let listener_chain = chain.clone();
