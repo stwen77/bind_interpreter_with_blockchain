@@ -15,7 +15,8 @@ lazy_static = "1.2.0"
 hex = "0.3.2"
 ripemd160 = "0.8.0"
 bs58 = "0.2.4"
-
+hyper = "0.12"
+futures = "0.1.21"
 
 
 [lib]
