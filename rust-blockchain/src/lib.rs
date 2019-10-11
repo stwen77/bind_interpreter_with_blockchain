@@ -1,4 +1,6 @@
 extern crate bincode;
+extern crate futures;
+extern crate hyper;
 extern crate sha1;
 extern crate time;
 
@@ -19,6 +21,7 @@ pub mod blocks;
 pub mod display;
 pub mod hash_content;
 pub mod help;
+pub mod http;
 pub mod identity;
 pub mod message;
 pub mod peers;
